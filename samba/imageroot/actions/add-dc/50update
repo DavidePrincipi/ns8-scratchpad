@@ -26,7 +26,7 @@ set -e
 # When a new DC is added to our domain it invokes this action so we can
 # update our configuration files.
 
-read ipaddress hostname <<<$(jq -r '.ipaddress, "\t", .hostname')
+read ipaddress hostname <<<$(jq -j '.ipaddress, "\t", .hostname')
 
 # Persist the new DC address for future containers
 echo "${ipaddress:?} ${hostname:?}" >> hosts
