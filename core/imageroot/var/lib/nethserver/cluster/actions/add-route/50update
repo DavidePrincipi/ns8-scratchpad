@@ -28,16 +28,15 @@ import json
 
 request = json.load(sys.stdin)
 
-rdb = agent.redis_connect(privileged=False)
+rdb = agent.redis_connect(privileged=True)
 
 network = request['network']
 node_id = request['node_id']
 
 # merge the new destination with existing values
 destinations = list({network, *rdb.hget(f'node/{node_id}/vpn', 'destinations').split()})
-destinations.sort()
 
-hset_result = rdb.hset(f'node/{node_id}/vpn', 'destinations', ' '.join(destinations))
+hset_result = rdb.hset(f'node/{node_id}/vpn', 'destinations', ' '.join(sorted(destinations)))
 agent.assert_exp(hset_result >= 0)
 
 if hset_result > 0:

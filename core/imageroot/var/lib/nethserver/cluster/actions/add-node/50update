@@ -79,6 +79,7 @@ update_routes_tasks = [{
 agent.assert_exp(rdb.hset(f'node/{node_id}/vpn', mapping={
     "public_key": public_key,
     "ip_address": ip_address,
+    "destinations": "",
     "endpoint": endpoint,
     "listen_port": str(listen_port),
 }) >= 0)
