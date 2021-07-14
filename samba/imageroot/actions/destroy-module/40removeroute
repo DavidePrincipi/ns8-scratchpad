@@ -29,7 +29,6 @@ if not os.getenv('REALM'):
     sys.exit(0) # Nothing to do if provision-domain was never run
 
 ip_address = os.environ['IPADDRESS']
-module_id = os.environ['MODULE_ID']
 node_id = int(os.environ['NODE_ID'])
 agent.assert_exp(node_id > 0)
 
