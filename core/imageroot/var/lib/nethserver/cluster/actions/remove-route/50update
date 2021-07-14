@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2021 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+import agent
+import agent.tasks
+import os
+import sys
+import json
+
+request = json.load(sys.stdin)
+
+rdb = agent.redis_connect(privileged=False)
+
+network = request['network']
+node_id = request['node_id']
+
+# Remove network from destinations
+destinations = list({*rdb.hget(f'node/{node_id}/vpn', 'destinations').split()}.difference({network}))
+destinations.sort()
+hset_result = rdb.hset(f'node/{node_id}/vpn', 'destinations', ' '.join(destinations))
+agent.assert_exp(hset_result >= 0)
+
+if hset_result == 0:
+    print("true") # Honor output JSON schema
+    sys.exit(0) # nothing to do
+
+# Build the task requests, one for each node
+tasks = []
+
+for knode in rdb.scan_iter('node/*/vpn'):
+    if knode == f'node/{node_id}/vpn':
+        continue # notify other nodes
+
+    tasks.append({
+        'agent_id': knode.removesuffix('/vpn'),
+        'action': 'update-routes',
+        'data': {},
+    })
+
+# Parallel tasks run
+errors = agent.tasks.runp_brief(
+    tasks,
+    endpoint="redis://cluster-leader",
+)
+
+agent.assert_exp(errors == 0)
+
+print("true") # Honor output JSON schema
