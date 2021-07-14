@@ -26,7 +26,7 @@ source /etc/os-release
 
 echo "Install dependencies:"
 if [[ ${ID} == "fedora" ]]; then
-    dnf install -y wireguard-tools podman jq unzip wget
+    dnf install -y wireguard-tools podman jq
 elif [[ ${ID} == "debian" ]]; then
 
     apt-get update
