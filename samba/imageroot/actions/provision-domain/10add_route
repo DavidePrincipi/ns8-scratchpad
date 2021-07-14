@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
 #
 # Copyright (C) 2021 Nethesis S.r.l.
@@ -20,14 +20,31 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-exec 1>&2 # Send any output to stderr, to not alter the action response protocol
-set -e
+import agent
+import agent.tasks
+import os
+import sys
+import json
 
 #
-# Allow other modules to call our actions by requiring the "peer" role
+# This is a prerequisite: if IP routing is not correctly set, the DC join might fail.
 #
-redis-exec SADD "${AGENT_ID}/roles/peer" "add-dc"
 
-# Install the Systemd unit for this module instance
-install -m 644 "${AGENT_INSTALL_DIR}/samba-dc.service" "/etc/systemd/system/${MODULE_ID}.service"
-systemctl daemon-reload
+request = json.load(sys.stdin)
+
+
+ip_address = request['ipaddress']
+module_id = os.environ['MODULE_ID']
+node_id = int(os.environ['NODE_ID'])
+agent.assert_exp(node_id > 0)
+
+add_route_result = agent.tasks.run(
+    agent_id='cluster',
+    action='add-route',
+    data={
+        "network": ip_address + '/32',
+        "node_id": node_id,
+    }
+)
+
+agent.assert_exp(add_route_result['exit_code'] == 0)

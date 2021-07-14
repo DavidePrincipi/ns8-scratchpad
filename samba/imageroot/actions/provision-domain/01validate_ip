@@ -20,14 +20,21 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-exec 1>&2 # Send any output to stderr, to not alter the action response protocol
+exec 1>&2
 set -e
 
-#
-# Allow other modules to call our actions by requiring the "peer" role
-#
-redis-exec SADD "${AGENT_ID}/roles/peer" "add-dc"
+cat >&"${AGENT_COMFD}" <<EOF
+set-weight 01validate_ip 0
+set-weight 40start_provisioning 5
+EOF
 
-# Install the Systemd unit for this module instance
-install -m 644 "${AGENT_INSTALL_DIR}/samba-dc.service" "/etc/systemd/system/${MODULE_ID}.service"
-systemctl daemon-reload
+read -r ipaddress < <(jq -r '.ipaddress')
+
+# Check if ipaddress is bound to a network interface
+if ! ip -o address show to "${ipaddress}/32" up | grep -q "${ipaddress}"; then
+    jq -c -n --arg ipaddress "${ipaddress}" '[{"field":"ipaddress","parameter":"ipaddress","value":$ipaddress,"error":"ipaddress_does_not_exist"}]'
+    echo "set-status validation-failed" >&"${AGENT_COMFD}"
+    exit 2
+fi
+
+exit 0
