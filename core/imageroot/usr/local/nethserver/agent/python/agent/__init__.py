@@ -85,11 +85,14 @@ def read_envfile(file_path):
 
     return env
 
-def run_helper(*args, **kwargs):
-    """Run the command and assert the exit code is 0
+def run_helper(*args, log_command=True, **kwargs):
+    """Run the command in args, writing the command line to stderr.
 
     The command output is redirected to stderr.
     """
+    if log_command:
+        print(shlex.join(args), file=sys.stderr)
+
     return subprocess.run(args, stdout=sys.stderr)
 
 def __action(*args):
@@ -204,14 +207,14 @@ def save_wgconf(ipaddr, listen_port=55820, peers={}):
         if peer['public_key'] == public_key:
             continue # Skip record if it refers to the local node
 
-        allowed_ips = { peer['ip_address'] }
-        if 'routes' in peer:
+        allowed_ips = { peer['ip_address'] + '/32' }
+        if 'destinations' in peer:
             # The set avoids duplicate values:
-            allowed_ips.update(peer['routes'])
+            allowed_ips.update({*peer['destinations']})
 
         wgconf.write(f'[Peer]\n')
         wgconf.write(f"PublicKey = {peer['public_key']}\n")
-        wgconf.write(f'AllowedIPs = {", ".join(allowed_ips)}\n')
+        wgconf.write(f'AllowedIPs = {", ".join(sorted(allowed_ips))}\n')
         wgconf.write(f'PersistentKeepalive = 25\n')
         if 'endpoint' in peer and peer['endpoint'] != '':
             wgconf.write(f"Endpoint = {peer['endpoint']}\n")
