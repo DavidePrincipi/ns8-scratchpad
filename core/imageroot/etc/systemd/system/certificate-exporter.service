@@ -1,0 +1,14 @@
+[Unit]
+Description=Traefik certificate exporter
+
+[Service]
+ExecStart=/usr/local/bin/certificate-exporter
+Environment="LOG=INFO"
+EnvironmentFile=/etc/nethserver/agent.env
+EnvironmentFile=/var/lib/nethserver/cluster/state/agent.env
+Restart=always
+Type=simple
+User=root
+
+[Install]
+WantedBy=default.target

@@ -153,7 +153,7 @@ EOF
 ) | redis-cli
 
 echo "Start API server and core agents:"
-systemctl enable --now api-server.service agent@cluster.service agent@node.service
+systemctl enable --now api-server.service agent@cluster.service agent@node.service certificate-exporter.service
 
 source /etc/profile.d/nethserver.sh
 
