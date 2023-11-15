@@ -21,7 +21,7 @@ container=$(buildah from scratch)
 # Add imageroot directory to the container image
 buildah add "${container}" imageroot /imageroot
 buildah add "${container}" ui/ /ui
-buildah config --entrypoint=/ \
+buildah config --entrypoint=/    \
     "${container}"
 # Commit the image
 buildah commit "${container}" "${repobase}/${reponame}"
