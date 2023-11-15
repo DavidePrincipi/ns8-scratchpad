@@ -1,0 +1,26 @@
+name: Test module
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug_shell:
+        description: "Debug shell"
+        required: true
+        type: boolean
+  workflow_run:
+    workflows: ["Publish images"]
+    types: [completed]
+
+jobs:
+  module:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == '' }}
+    uses: NethServer/ns8-github-actions/.github/workflows/module-info.yml@main
+  run_tests:
+    needs: module
+    uses: NethServer/ns8-github-actions/.github/workflows/test-on-digitalocean-infra.yml@main
+    with:
+      args: "ghcr.io/${{needs.module.outputs.owner}}/${{needs.module.outputs.name}}:${{needs.module.outputs.tag}}"
+      repo_ref: ${{needs.module.outputs.sha}}
+      debug_shell: ${{ github.event.inputs.debug_shell == 'true' || false }}
+    secrets:
+      do_token: ${{ secrets.do_token }}

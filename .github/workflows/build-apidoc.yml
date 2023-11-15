@@ -1,0 +1,12 @@
+name: "Build API JSON Schema docs"
+
+on:
+  push:
+    paths:
+      - '**/validate-input.json'
+      - '**/validate-output.json'
+      - '**/validator-definitions.json'
+
+jobs:
+  build-apidoc:
+    uses: NethServer/ns8-github-actions/.github/workflows/build-apidoc.yml@v1

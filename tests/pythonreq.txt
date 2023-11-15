@@ -1,0 +1,9 @@
+robotframework==4.1.2
+robotframework-sshlibrary==3.8.0
+bcrypt==3.2.0
+cffi==1.15.0
+cryptography==36.0.1
+paramiko==2.9.2
+pycparser==2.21
+pynacl==1.5.0
+scp==0.14.2

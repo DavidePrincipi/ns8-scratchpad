@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import agent
+import agent.tasks
+import os
+
+request = json.load(sys.stdin)
+
+# TODO: do something with the request payload. For example configure a
+# custom route in our web router. Here the path is hardcoded as
+# 'kickstart'.
+
+# Configure Traefik to route "/kickstart" path requests to the kickstart service
+response = agent.tasks.run(
+    agent_id=agent.resolve_agent_id('traefik@node'),
+    action='set-route',
+    data={
+        'instance': os.environ['MODULE_ID'],
+        'url':  'http://127.0.0.1:' + os.environ["TCP_PORT"],
+        'http2https': False,
+        'lets_encrypt': False,
+        'path': '/kickstart',
+    },
+)
+
+# Check if traefik configuration has been successfull
+agent.assert_exp(response['exit_code'] == 0)

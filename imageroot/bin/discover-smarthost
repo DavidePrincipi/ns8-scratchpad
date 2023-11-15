@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import sys
+import agent
+import os
+
+# Connect the local Redis replica. This is necessary to consistently start
+# the service if the leader node is not reachable:
+rdb = agent.redis_connect(use_replica=True)
+smtp_settings = agent.get_smarthost_settings(rdb)
+
+envfile = "smarthost.env"
+
+# Using .tmp suffix: do not overwrite the target file until the new one is
+# saved to disk:
+with open(envfile + ".tmp", "w") as efp:
+    # HINT for kickstart: adjust variable names as needed
+    print(f"SMTP_ENABLED={'1' if smtp_settings['enabled'] else ''}", file=efp)
+    print(f"SMTP_HOST={smtp_settings['host']}", file=efp)
+    print(f"SMTP_PORT={smtp_settings['port']}", file=efp)
+    print(f"SMTP_USERNAME={smtp_settings['username']}", file=efp)
+    print(f"SMTP_PASSWORD={smtp_settings['password']}", file=efp)
+    print(f"SMTP_ENCRYPTION={smtp_settings['encrypt_smtp']}", file=efp)
+    print(f"SMTP_TLSVERIFY={'1' if smtp_settings['tls_verify'] else ''}", file=efp)
+
+# Commit changes by replacing the existing envfile:
+os.replace(envfile + ".tmp", envfile)
+
+# NOTE: The generated envfile can be included in the service container
+#       with `podman run --env-file` or in Systemd unit with
+#       `Environment=-%S/state/smarthost.env`

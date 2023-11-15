@@ -1,0 +1,19 @@
+{
+  "name": "kickstart",
+  "description": {
+    "en": "My kickstart module"
+  },
+  "categories": [],
+  "authors": [
+    {
+      "name": "Name Surname",
+      "email": "author@yourmail.org"
+    }
+  ],
+  "docs": {
+    "documentation_url": "https://docs.kickstart.com/",
+    "bug_url": "https://github.com/NethServer/dev",
+    "code_url": "https://github.com/author/ns8-kickstart"
+  },
+  "source": "ghcr.io/nethserver/kickstart"
+}
